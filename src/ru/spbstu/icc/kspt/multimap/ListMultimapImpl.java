@@ -105,11 +105,65 @@ public class ListMultimapImpl<K, V> implements ListMultimap<K, V> {
 
     @Override
     public Collection<V> values() {
-        List<V> res = new ArrayList<>();
-        for (List<V> values : map.values()) {
-            res.addAll(values);
-        }
-        return res;
+        return new AbstractCollection<V>() {
+
+            @Override
+            public Iterator<V> iterator() {
+                return new Iterator<V>() {
+
+                    private Iterator<Entry<K, List<V>>> entries;
+
+                    private Iterator<V> values;
+
+                    public boolean hasNext() {
+                        return values.hasNext() || entries.hasNext();
+                    }
+
+                    public V next() {
+                        if (entries == null) { // lazy
+                            entries = map.entrySet().iterator();
+                            values = entries.next().getValue().iterator();
+                        }
+                        if (!values.hasNext()) {
+                            values = entries.next().getValue().iterator();
+                            return next();
+                        }
+                        return values.next();
+                    }
+
+                    public void remove() {
+                        values.remove();
+                    }
+                };
+            }
+
+            @Override
+            public int size() {
+                return ListMultimapImpl.this.size();
+            }
+
+            @Override
+            public boolean isEmpty() {
+                return ListMultimapImpl.this.isEmpty();
+            }
+
+            @Override
+            public void clear() {
+                ListMultimapImpl.this.clear();
+            }
+
+            @Override
+            public boolean contains(Object v) {
+                return ListMultimapImpl.this.containsValue(v);
+            }
+        };
+
+//        List<V> res = new ArrayList<>();
+//        for (List<V> values : map.values()) {
+//            res.addAll(values);
+//        }
+//        return res;
+
     }
 
     @Override
