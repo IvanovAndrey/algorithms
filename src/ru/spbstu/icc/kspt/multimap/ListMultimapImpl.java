@@ -1,7 +1,7 @@
 package ru.spbstu.icc.kspt.multimap;
 
-import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Map.Entry;
 
 /*
@@ -37,7 +37,7 @@ public class ListMultimapImpl<K, V> implements ListMultimap<K, V> {
     }
 
     @Override
-    public boolean containsValue(V value) {
+    public boolean containsValue(Object value) {
         for (Entry<K, List<V>> entry : map.entrySet()) {
             if (entry.getValue().contains(value)) {
                 return true;
@@ -47,7 +47,7 @@ public class ListMultimapImpl<K, V> implements ListMultimap<K, V> {
     }
 
     @Override
-    public boolean containsEntry(K key, V value) {
+    public boolean containsEntry(K key, Object value) {
         if (!map.containsKey(key)) {
             return false;
         }
@@ -111,20 +111,16 @@ public class ListMultimapImpl<K, V> implements ListMultimap<K, V> {
             public Iterator<V> iterator() {
                 return new Iterator<V>() {
 
-                    private Iterator<Entry<K, List<V>>> entries;
+                    private Iterator<Entry<K, List<V>>> entries = map.entrySet().iterator();
 
                     private Iterator<V> values;
 
                     public boolean hasNext() {
-                        return values.hasNext() || entries.hasNext();
+                        return entries.hasNext() || (values != null && values.hasNext());
                     }
 
                     public V next() {
-                        if (entries == null) { // lazy
-                            entries = map.entrySet().iterator();
-                            values = entries.next().getValue().iterator();
-                        }
-                        if (!values.hasNext()) {
+                        if (values == null || !values.hasNext()) {
                             values = entries.next().getValue().iterator();
                             return next();
                         }
@@ -139,7 +135,11 @@ public class ListMultimapImpl<K, V> implements ListMultimap<K, V> {
 
             @Override
             public int size() {
-                return ListMultimapImpl.this.size();
+                int size = 0;
+                for (K k : map.keySet()) {
+                    size += map.get(k).size();
+                }
+                return size;
             }
 
             @Override
@@ -157,13 +157,6 @@ public class ListMultimapImpl<K, V> implements ListMultimap<K, V> {
                 return ListMultimapImpl.this.containsValue(v);
             }
         };
-
-//        List<V> res = new ArrayList<>();
-//        for (List<V> values : map.values()) {
-//            res.addAll(values);
-//        }
-//        return res;
-
     }
 
     @Override

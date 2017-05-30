@@ -2,6 +2,9 @@ package ru.spbstu.icc.kspt.multimap;
 
 import org.junit.Test;
 
+import java.util.Collection;
+import java.util.Iterator;
+
 import static org.junit.Assert.*;
 
 public class ListMultimapTest {
@@ -58,4 +61,50 @@ public class ListMultimapTest {
         assertTrue(multimap.containsEntry('z', 20));
     }
 
+    @Test
+    public void testValues() throws Exception {
+        init();
+
+        Collection<Integer> values = multimap.values();
+        for (int i = 1; i < 26; i++) {
+            assertTrue(values.contains(i));
+        }
+    }
+
+    @Test
+    public void testValuesSize() throws Exception {
+        init();
+
+        int expected = 0;
+        for (Character c : multimap.keySet()) {
+            expected += multimap.get(c).size();
+        }
+
+        int actual = 0;
+        for (int i : multimap.values()) {
+            actual++;
+        }
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testValuesIteratorAndRemove() throws Exception {
+        init();
+
+        int before = multimap.values().size();
+        Iterator<Integer> it = multimap.values().iterator();
+        while (it.hasNext()) {
+            if (it.next() == 26) { // only once
+                it.remove();
+            }
+        }
+        assertEquals(before - 1, multimap.values().size());
+    }
+
+    @Test
+    public void testValuesIsEmpty() throws Exception {
+        assertTrue(multimap.values().isEmpty());
+        assertFalse(multimap.values().iterator().hasNext());
+    }
 }
